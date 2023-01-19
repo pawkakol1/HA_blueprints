@@ -1,0 +1,56 @@
+blueprint:
+  name: Z-WAVE_notification_button-dimming_light_switching
+  description: Dimmging light switching using Z-Wave wall switch (1-channel or 2-channels) Keemple (KP-SW-07 or KP-SW-08) device. The blueprint supports additional (2nd or 3rd) notification button.
+  domain: automation
+  input:
+    node_id:
+      name: Z-Wave node ID
+      selector:
+        number:
+    light_target:
+      name: Target light for control
+      selector:
+        entity:
+          domain: light
+    brightness_target:
+      name: Brightnes level of target light
+      default: 100
+      selector:
+        number:
+          min: 1.0
+          max: 100.0
+          step: 1.0
+          mode: slider
+    kelvin_target:
+      name: Kelvin level of target light bulb
+      default: 5000
+      selector:
+        number:
+          min: 4000.0
+          max: 6000.0
+          step: 50.0
+          mode: slider
+
+trigger:
+  platform: event
+  event_type: zwave_js_value_notification
+  event_data:
+    node_id: !input node_id
+
+action:
+  - choose:
+      - conditions:
+          - condition: state
+            entity_id: !input light_target
+            state: "off"
+        sequence:
+          - service: light.turn_on
+            data:
+              brightness: !input brightness_target
+              kelvin: !input kelvin_target
+            target:
+              entity_id: !input light_target
+    default:
+      - service: light.turn_off
+        target:
+          entity_id: !input light_target

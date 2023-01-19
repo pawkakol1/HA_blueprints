@@ -1,0 +1,45 @@
+blueprint:
+  name: Z-Wave_Notification_button-control_room_blinders
+  description: Blind cover control using Z-Wave wall switch (1-channel or 2-channels) Keemple (KP-SW-07 or KP-SW-08) device. The blueprint supports additional (2nd or 3rd) notification button.
+  domain: automation
+  input:
+    node_id:
+      name: Z-Wave node ID
+      selector:
+        number:
+    cover_target:
+      name: Cover Target
+      selector:
+        entity:
+          domain: cover
+          device_class: blind
+
+variables:
+  cover_entity: !input cover_target
+
+trigger:
+  platform: event
+  event_type: zwave_js_value_notification
+  event_data:
+    node_id: !input node_id
+
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: '{{ states(cover_entity) == "closed" }}'
+        sequence:
+          - service: cover.open_cover
+            target:
+              entity_id: !input cover_target
+      - conditions:
+          - condition: template
+            value_template: '{{ states(cover_entity) == "open" }}'
+        sequence:
+          - service: cover.close_cover
+            target:
+              entity_id: !input cover_target
+    default:
+      - service: cover.stop_cover
+        target:
+          entity_id: !input cover_target

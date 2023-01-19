@@ -1,0 +1,56 @@
+blueprint:
+  name: TTS_notification_to_personal_device
+  description: Notify to choosen device (of choosen person) using Text to Speech mechanism
+  domain: automation
+  input:
+    boolean_trigger:
+      name: Boolean Trigger
+      selector:
+        entity:
+          domain: input_boolean
+    notify_device:
+      name: Device to notify
+      selector:
+        device:
+          integration: mobile_app
+    device_track:
+      name: (Optional) Device Tracker
+      default: {}
+      selector:
+        entity:
+          domain: device_tracker
+    condition_device_location:
+      name: (Optional) Device location for condition
+      default: "home"
+      selector:
+        text:
+    title_text:
+      name: Title of notification
+      selector:
+        text:
+    message_text:
+      name: Message of notification to send
+      selector:
+        text:
+
+variables:
+  device_track: !input device_track
+  condition_device_location: !input condition_device_location
+
+trigger:
+  platform: state
+  entity_id: !input boolean_trigger
+  from: "off"
+  to: "on"
+
+condition: "{{ states(device_track) == condition_device_location }}"
+
+action:
+  - alias: "Notify to person device"
+    device_id: !input notify_device
+    domain: mobile_app
+    type: notify
+    title: !input title_text
+    message: "TTS"
+    data:
+      tts_text: !input message_text

@@ -1,0 +1,57 @@
+blueprint:
+  name: Z-WAVE_notification_button-toggle
+  description: Toggle button of switch, light and/or input_boolean domain using Z-Wave wall switch (1-channel or 2-channels) Keemple (KP-SW-07 or KP-SW-08) device. The blueprint supports additional (2nd or 3rd) notification button.
+  domain: automation
+  input:
+    node_id:
+      name: Z-Wave node ID
+      selector:
+        number:
+    switch_target:
+      name: switch toggle target
+      default: {}
+      selector:
+        entity:
+          domain: switch
+    light_target:
+      name: light toggle target
+      default: {}
+      selector:
+        entity:
+          domain: light
+    input_boolean_target:
+      name: input_boolean toggle target
+      default: {}
+      selector:
+        entity:
+          domain: input_boolean
+
+variables:
+  switch_target: !input switch_target
+  light_target: !input light_target
+  input_boolean_target: !input input_boolean_target
+
+trigger:
+  platform: event
+  event_type: zwave_js_value_notification
+  event_data:
+    node_id: !input node_id
+
+action:
+  - choose:
+      - conditions: "{{ light_target|length > 0 }}"
+        sequence:
+          - service: light.toggle
+            target:
+              entity_id: !input light_target
+      - conditions: "{{ switch_target|length > 0 }}"
+        sequence:
+          - service: switch.toggle
+            target:
+              entity_id: !input switch_target
+      - conditions: "{{ input_boolean_target|length > 0 }}"
+        sequence:
+          - service: input_boolean.toggle
+            target:
+              entity_id: !input input_boolean_target
+    default:
